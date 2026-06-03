@@ -13,6 +13,7 @@ module Dormouse.Url
   , httpUrlAsBS
   , httpsUrlAsBS
   , urlAsBS
+  , isUrlAsBS
   , IsUrl(..)
   ) where
 
@@ -73,6 +74,9 @@ httpsUrlAsBS (HttpsUrl httpsUrl) = "https://" <> componentsAsBS httpsUrl
 urlAsBS :: AnyUrl -> SB.ByteString
 urlAsBS (AnyUrl (HttpUrl httpUrl)) = httpUrlAsBS (HttpUrl httpUrl)
 urlAsBS (AnyUrl (HttpsUrl httpUrl)) = httpsUrlAsBS (HttpsUrl httpUrl)
+
+isUrlAsBS :: IsUrl url => url -> SB.ByteString
+isUrlAsBS = urlAsBS . asAnyUrl
 
 componentsAsBS :: UrlComponents -> SB.ByteString
 componentsAsBS uc =
