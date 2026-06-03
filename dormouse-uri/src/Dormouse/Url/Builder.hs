@@ -15,6 +15,7 @@ module Dormouse.Url.Builder
 
 import Data.Foldable  
 import Data.Text (Text)
+import Dormouse.Url.Class (IsUrl(mapIsUrl))
 import Dormouse.Uri.Types
 import Dormouse.Url.Types
 
@@ -51,9 +52,11 @@ instance IsQueryVal String where toQueryVal = T.pack
 instance IsQueryVal T.Text where toQueryVal = id
 
 -- | Combine a Url with a new text path component
-(</>) :: Url scheme -> Text -> Url scheme
-(</>) (HttpUrl UrlComponents {urlPath = path, .. }) text = HttpUrl $ UrlComponents {urlPath = (Path {unPath = unPath path ++ [PathSegment text] }), ..}
-(</>) (HttpsUrl UrlComponents {urlPath = path, .. }) text = HttpsUrl $ UrlComponents {urlPath = (Path {unPath = unPath path ++ [PathSegment text] }), ..}
+(</>) :: IsUrl url => url -> Text -> url
+(</>) url text = mapIsUrl f url where
+  f :: forall scheme. Url scheme -> Url scheme
+  f (HttpUrl UrlComponents {urlPath = path, .. }) = HttpUrl $ UrlComponents {urlPath = (Path {unPath = unPath path ++ [PathSegment text] }), ..}
+  f (HttpsUrl UrlComponents {urlPath = path, .. }) = HttpsUrl $ UrlComponents {urlPath = (Path {unPath = unPath path ++ [PathSegment text] }), ..}
 
 -- | Convenient alias for '<>' which allows for combining query parameters
 (&) :: QueryBuilder -> QueryBuilder -> QueryBuilder
@@ -61,15 +64,17 @@ instance IsQueryVal T.Text where toQueryVal = id
 
 -- | Combine a Url with a some supplied query parameters
 (?) :: Url scheme -> QueryBuilder -> Url scheme
-(?) uri b = 
-  case uri of 
-    HttpUrl  UrlComponents { .. } -> HttpUrl $ UrlComponents { urlQuery = Just $ foldl' folder "" $ unQueryBuilder b  , .. }
-    HttpsUrl UrlComponents { .. } -> HttpsUrl $ UrlComponents { urlQuery = Just $ foldl' folder "" $ unQueryBuilder b  , .. }
-  where 
-    folder "" (QueryFlag val)       = Query $ val
-    folder "" (QueryParam key val)  = Query $ key <> "=" <> val
-    folder acc (QueryFlag val)      = Query $ unQuery acc <> "&" <> val
-    folder acc (QueryParam key val) = Query $ unQuery acc <> "&" <> key <> "=" <> val
+(?) uri b = mapIsUrl f uri where
+  f :: forall scheme. Url scheme -> Url scheme
+  f uri' = 
+    case uri' of
+      (HttpUrl  UrlComponents { .. }) -> HttpUrl $ UrlComponents { urlQuery = Just $ foldl' folder "" $ unQueryBuilder b  , .. }
+      (HttpsUrl UrlComponents { .. }) -> HttpsUrl $ UrlComponents { urlQuery = Just $ foldl' folder "" $ unQueryBuilder b  , .. }
+    where
+      folder "" (QueryFlag val)       = Query $ val
+      folder "" (QueryParam key val)  = Query $ key <> "=" <> val
+      folder acc (QueryFlag val)      = Query $ unQuery acc <> "&" <> val
+      folder acc (QueryParam key val) = Query $ unQuery acc <> "&" <> key <> "=" <> val
 
 infixl 8 ?
 

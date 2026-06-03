@@ -1,5 +1,5 @@
 name:                dormouse-client
-version:             0.3.0.0
+version:             0.4.0.0
 github:              "theinnerlight/dormouse"
 license:             BSD3
 author:              Phil Curzon
@@ -64,7 +64,7 @@ library:
     - Dormouse.Client.Status
     - Dormouse.Client.Test.Class
   dependencies:
-    - dormouse-uri >= 0.3 && < 0.4
+    - dormouse-uri >= 0.3 && < 0.5
   ghc-options:
     - -Wall
   
