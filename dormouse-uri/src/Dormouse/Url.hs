@@ -14,6 +14,7 @@ module Dormouse.Url
   , httpsUrlAsBS
   , urlAsBS
   , isUrlAsBS
+  , toSchemeAndComponents
   , IsUrl(..)
   ) where
 
@@ -89,6 +90,8 @@ componentsAsBS uc =
       fragment = maybe "" (\f -> "#" <> urlEncode False (TE.encodeUtf8 (unFragment f))) (urlFragment uc)
   in uInfo <> host <> port <> path <> queryString <> fragment
 
-
-
-
+toSchemeAndComponents :: IsUrl url => url -> (UrlScheme, UrlComponents)
+toSchemeAndComponents url =
+  case asAnyUrl url of
+    AnyUrl (HttpUrl uc)  -> (HttpScheme, uc)
+    AnyUrl (HttpsUrl uc) -> (HttpsScheme, uc)
